@@ -15,6 +15,144 @@
 
 
 <style>
+
+.bar {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+
+
+    }
+
+    .bar .left {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .bar .left input {
+        height: 5vh;
+    }
+
+
+    .hidden {
+        display: none;
+    }
+
+    #search-dropdown {
+        position: absolute;
+    }
+
+    @media print {
+        * {
+            background: transparent !important;
+            color: #000 !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+            font-size: 100%;
+
+        }
+
+        .bar,
+        #nav1,
+        header {
+            display: none;
+        }
+
+        #div2 {
+            position: absolute;
+            top: -100px;
+            text-align: center;
+            width: 100%;
+        }
+
+
+    }
+
+
+    #customizeMenu{
+        width: fit-content;
+        height: 50vh;
+        overflow-y: auto;
+    }
+
+    :root {
+        --body-bg: rgb(204, 204, 204);
+        --white: #ffffff;
+        --darkWhite: #ccc;
+        --black: #000000;
+        --dark: #615c60;
+        --themeColor: #dfbc0c;
+        --pageShadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+    }
+    @media print {
+        body{
+            visibility: hidden !important;
+            /* background-color: white; */
+        }
+
+        .printContainer {
+            visibility: visible !important;
+            position: absolute;
+            z-index: 99999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: large;
+        }
+
+    }
+
+    .page {
+        background: var(--white);
+        display: block;
+        margin: 0 auto;
+        position: relative;
+        box-shadow: var(--pageShadow);
+    }
+
+    .page[size="A4"] {
+        width: 99%;
+        height: 29.7cm;
+        overflow: hidden;
+    }
+    #reportTable {
+    border-collapse: collapse;
+    width: 100%;
+    }
+
+    #reportTable th, #reportTable td {
+    border: 1px solid #dddddd;
+    padding: 5px 2px;
+    color: #000;
+    }
+
+    /* .whatsapp-this{
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+      padding: 4px 0px;
+    }
+
+    .whatsapp-this:hover{
+      background-color: rgb(255 255 255 / 0.21);
+    } */
+
+
+    .submitShareEmailBtn {
+        background: #192d3e;
+        border: 1px solid #3a4b5a;
+        border-radius: 4px;
+        color: white;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+    }
+    .submitShareEmailBtn:hover {
+        background: #3a4b5a;
+    }
+
+
+
     .content {
         display: none;
         position: absolute;
@@ -26,6 +164,21 @@
         height: fit-content;
         z-index: 1;
     }
+
+    .arrow {
+        /* font-size: 0.6em; */
+        cursor: pointer;
+        margin-left: 5px;
+    }
+
+    .arrow.up {
+        transform: rotate(180deg);
+    }
+
+    /* Set the color of the datepicker icon to white */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
 </style>
 
 
@@ -60,7 +213,7 @@
                                   <button class="btn btn-warning" onclick="toggleContent()"><i class="fas fa-solid fa-gear"></i> Customize Report</button>
                                   <div id="contentDiv" class="content">
                                       <h6 style="color: white;">Customize Report</h6>
-                                      <form action="" class="form reportCustomizeForm" method="get">
+                                      <form action="{% url 'item_report_by_party_customized' %}" class="form reportCustomizeForm" method="get">
                                           <div class="px-2">
                                               <label style="text-align:left ">From</label><br>
                                               <input name="from_date" class="inputdate form-control text-light" type="date" id="startDate" value="{{startDate}}" >
@@ -73,20 +226,25 @@
                                           <div class="px-2">
                                               <label style="text-align:left;color: white;">Party</label><br>
                                               <div class="p-0 border-0 bg-none position-relative drop-box">
-                                                <input required type="text" id="customer" value="" name="customer" class="dropdown-toggle form-control text-white customers-display" onkeyup="filterCustomers()" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Select Customer.." autocomplete="off">
+                                                <input hidden name="type_of_party" id="typeofparty" type="text">
+                                                <input hidden name="party_id" id="partyid" type="text">
+                                                <input required type="text" id="party" value="" name="customer" class="dropdown-toggle form-control text-white customers-display" onkeyup="filterCustomers()" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Select Party.." autocomplete="off">
                                                 <ul class="dropdown-menu w-100 customers-available position-absolute bg-black text-white" id="cust_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh; border: 1px solid gray;"> 
-                                                    <li class="dropdown-item customers-options text-white">Select Customer</li>
-                                                    <optgroup id="expensesel" label="Customer">
+                                                    <li class="dropdown-item customers-options text-white">Select Party</li>
                                         
-                                                        {% for i in accounts %}
+                                                        {% for c in customers %}
                             
-                                                        {% if i.account_type == 'Expense' %}
-                                                        
-                                                            <option value="{{i.account_name}}">{{i.account_name}}</option>
+                                                        <li class="dropdown-item customers-options text-white" onclick="get_customer_id_report(`{{c.id}}`,this.innerHTML)">{{c.title}} {{c.first_name}} {{c.last_name}}</li>
                                                     
-                                                        {% endif %}
                                                         {% endfor %}
-                                                    </optgroup>
+
+                                        
+                                                        {% for v in vendors %}
+                            
+                                                        <li class="dropdown-item customers-options text-white" onclick="get_vendor_id_report(`{{v.id}}`,this.innerHTML)">{{v.title}} {{v.first_name}} {{v.last_name}}</li>
+                                                    
+                                                        {% endfor %}
+
                                                 </ul>
                                                 
                                             </div>
@@ -102,7 +260,118 @@
                             
                                 
                                 
-                          </div>
+                        </div>
+                        <div class="col-md-6 d-flex justify-content-end h-100 p-2">
+                           
+                            <a style="border: 1px solid; border-radius: 5px; height: 2.4rem; display: flex; align-items: center;" id="exportBtn" onclick="ExportToExcel()" class="btn btn-outline-warning" >
+                                <i class="fa fa-file-excel p-1" style="font-size: large;"></i>
+                                <span style="font-size: 2vh; margin-left: 0.5rem;" class="text-center" >Export</span>
+                              </a>&nbsp;&nbsp;
+                            
+                            <!-- <a href="#" id="importBtn" class="btn btn-outline-warning ms-1">
+                                <i class="fa fa-file-import ms-1" style="color: #FFD43B;" aria-hidden="true"></i> Import
+                            </a> -->
+                            <a style="border: 1px solid; border-radius: 5px; height: 2.4rem; display: flex; align-items: center;" class="btn btn-outline-warning" id="pdfBtn" onclick="reportPDF()" >
+                                <i class="fa fa-file-pdf  p-1" style="font-size: large;"></i>
+                                <span style="font-size: 2vh; margin-left: 0.5rem;" class="text-center">Pdf</span>
+                              </a>&nbsp;&nbsp;
+                              <a style="border: 1px solid; border-radius: 5px; height: 2.4rem; display: flex; align-items: center;" class="btn btn-outline-warning"   id="printBtn" onclick="printSection('printReport')">
+                                <i class="fa fa-print  p-1" style="font-size: large;"></i>
+                                <span style="font-size: 2vh; margin-left: 0.5rem;" class="text-center">Print</span>
+                              </a>&nbsp;&nbsp;
+                              <a style="border: 1px solid; border-radius: 5px; height: 2.4rem; display: flex; align-items: center;" class="btn btn-outline-warning"  title="SHARE" id="share_btn" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-share p-1" style="font-size: large;"></i>
+                                <span style="font-size: 2vh; margin-left: 0.5rem;" class="text-center">Share</span>
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="share_btn">
+                                <li class="" style="color: #000;">{% post_to_whatsapp object_or_url "WhatsApp" %}</li>
+                                <!-- <a class="dropdown-item text-black">{% post_to_whatsapp object_or_url "WhatsApp" %}</a> -->
+                                <a class="dropdown-item text-black" data-toggle="modal" id="toggleEmailModal">Email</a>
+                            </div>
+                        </div>
+
+
+                        <!-- price lists table -->
+                        <div class="table-responsive " style="overflow-x:auto;margin-top: 20px;">
+                            <div class="card radius-15 print-only" id="pdf-card" style="background-color: #000;" >
+                                <div class="card-body">
+                                    <div class="container-fluid">
+                        
+                                        <div  id="printReport"  class="printReportTemplate" style="display: block;">
+                                            <div class="my-5 page" size="A4" >
+                                                <div id="printdiv2">
+                                                    <div class="py-4 bg-warning" >
+                                                        <!-- <div id="ember2512" class="col-md-4 d-flex justify-content-start tooltip-container ember-view ribbon text-ellipsis"></div> -->
+                                                        <div class="col-12">
+                                                                <center class="h5 text-white"><b>{{cmp.company_name}}</b></center>
+                                                                <center class="h3 text-white"><b>ITEM REPORT BY PARTY</b></center>
+                                                                {% if startDate and endDate %}
+                                                                <center class="h6 text-white">{{startDate}} TO {{endDate}}</center>
+                                                                {% endif %}
+                                                        </div>  
+                                                        <!-- <div class="col-md-4 d-flex justify-content-end"></div> -->
+                                                    </div>
+                                                    <div class="row px-1 py-1">
+                                                        <div class="col-12">
+                        
+                                                            <section class="product-area mt-2">
+                                                                <table class="table table-responsive-md mt-4 table-hover" id="reportTable">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th class="text-center">ITEM NAME </th>
+                                                                            <th class="text-center">SALES QUANTTY</th>
+                                                                            <th class="text-center">SALES AMOUNT</th>
+                                                                            <th class="text-center">PURCHASE QUANTTY</th>
+                                                                            <th class="text-center">PURCHASE AMOUNT</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {% for i in reportData %}
+                                                                        <tr>
+                                                                            <td class="text-center">{{i.name}}</td>
+                                                                            <td class="text-center">{{i.count}}</td>
+                                                                            <td class="text-center">Rs. {{i.sales|floatformat:2 }}</td>
+                                                                        </tr>
+                                                                        {% endfor %}
+                                                                    </tbody>
+                                                                </table>
+                                                            </section>
+                                                
+                                                            <section class="balance-info text-dark">
+                                                                <div class="row p-4">
+                                                                    <div class="col-10">
+                                                                        <div class="row mb-2">
+                                                                            <div class="col-4">Total customers : <p style="font-size: 19px;">{{totalCustomers|default:0}}</p>
+                                                                            </div><br><br>
+                                                                        </div>
+                                                                        <div class="row mb-2">
+                                                                            <div class="col-4 ">Invoice Sale: <p id="sales" style="font-size: 19px;">₹<span id="totalInvoice">{{totalInvoice|default:0|floatformat:2 }}</span></p></div>
+                                                                            <div class="col-4">Recurring Invoice Sale: <p id="purchase" style="font-size: 19px;">₹<span id="totalReccuringinvoice">{{totalRecInvoice|default:0|floatformat:2}}</span></p></div>
+                                                                            <div class="col-4">Credit Note: <p id="expense" style="font-size: 19px;">₹<span id="totalCreditnote">{{totalCreditNote|default:0|floatformat:2}}</span></p></div>
+                                                                        </div>
+                                                                        <div class="row mb-2">
+                                                                            <div class="col-4 ">SubTotal: <p id="sales" style="font-size: 19px;">₹<span id="totalSale">{{subtotal|default:0|floatformat:2}}</span></p></div>
+                                                                            <div class="col-4">SubTotal Without Credit Note:<p id="expense" style="font-size: 19px;">₹<span id="totalSalewithoutCreditnotes">{{subtotalWOCredit|default:0|floatformat:2}}</span></p></div>
+                                                                            <div class="col-4">Total Sale:<br>(Without Credit Note)<p id="purchase" style="font-size: 19px;">₹<span id="grantTotal">{{totalSaleWOCredit|default:0|floatformat:2}}</span></p></div>
+                                                                        </div>
+                                                    
+                                                                    </div>
+                                                                    <div class="col-2 text-center">
+                                                                        <h5 style="padding-top: 80px; color: #000; font-weight: bold;">Total Sale</h5>
+                                                                        <h4 class="text-dark" style="font-weight: 600;" id="totvalue">₹<span id="superTotal">{{totalSale|default:0|floatformat:2}}</span></h4>
+                                                                    </div>
+                                                                </div>
+                                                            </section>
+                                                        </div>
+                                                            
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+        </div>
 
 
 
@@ -138,6 +407,19 @@
                 // contentDiv.style.top = (buttonRect.bottom + window.scrollY) + "px";
                 // contentDiv.style.left = buttonRect.left + "px";
             }
+        }
+
+
+        function get_customer_id_report(custId, name){
+                $('#party').val(name)
+                $('#typeofparty').val(1)
+                $('#partyid').val(custId)
+            }
+
+        function get_vendor_id_report(vendId, name){
+            $('#party').val(name)
+            $('#typeofparty').val(2)
+            $('#partyid').val(vendId)
         }
 
 

@@ -49261,14 +49261,50 @@ def item_report_by_party(request):
             dash_details = StaffDetails.objects.get(login_details=log_details)
 
         allmodules= ZohoModules.objects.get(company = company)
+        customers = Customer.objects.filter(company = company, customer_status="Active")
+        vendors = Vendor.objects.filter(company=company, vendor_status = "Active")
+        
 
 
-        context = {'allmodules':allmodules, 'details':dash_details, 'company':company,'log_details':log_details}
+        context = {'allmodules':allmodules, 'details':dash_details, 'company':company,'log_details':log_details,
+        'customers':customers, 'vendors':vendors}
 
 
 
         
         return render(request, 'zohomodules/Reports/item_report_by_party.html', context)
+
+
+def item_report_by_party_customized(request):
+    if 'login_id' in request.session:
+        log_id = request.session['login_id']
+        log_details= LoginDetails.objects.get(id=log_id)
+        if log_details.user_type == 'Company':
+            company = CompanyDetails.objects.get(login_details = log_details)
+            dash_details = CompanyDetails.objects.get(login_details=log_details)
+        else:
+            company = StaffDetails.objects.get(login_details = log_details).company
+            dash_details = StaffDetails.objects.get(login_details=log_details)
+
+        # rec = RecurringInvoice.objects.filter(company = cmp)
+        allmodules= ZohoModules.objects.get(company = company)
+
+
+
+
+        context = {'allmodules':allmodules, 'details':dash_details, 'company':company,'log_details':log_details,}
+
+
+
+        return render(request, 'zohomodules/Reports/item_report_by_party.html', context)
+
+
+
+
+
+
+
+
 
         
         
