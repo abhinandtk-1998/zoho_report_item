@@ -49287,12 +49287,91 @@ def item_report_by_party_customized(request):
             dash_details = StaffDetails.objects.get(login_details=log_details)
 
         # rec = RecurringInvoice.objects.filter(company = cmp)
-        allmodules= ZohoModules.objects.get(company = company)
+        allmodules = ZohoModules.objects.get(company = company)
+        customers = Customer.objects.filter(company = company, customer_status="Active")
+        vendors = Vendor.objects.filter(company=company, vendor_status = "Active")
+
+        if request.method == 'POST':
+            start_date = request.POST['from_date']
+            end_date = request.POST['to_date']
+            party_type = request.POST['type_of_party']
+            party_id = request.POST['party_id']
 
 
 
 
-        context = {'allmodules':allmodules, 'details':dash_details, 'company':company,'log_details':log_details,}
+
+            item_list = Items.objects.filter(company=company)
+            item_report = {}
+            
+            j = 0
+            for i in item_list:
+                sales_quantity = 0
+                sales_amount = 0
+                purchase_quantity = 0
+                purchase_amount = 0
+
+                if party_type == '1':
+                    customer = Customer.objects.get(id=party_id)
+                    inv_items = invoiceitems.objects.filter(company=company,logindetails=customer.login_details)
+                    for inv_i in inv_items:
+                        if inv_i.Items == i:
+                            sales_quantity = sales_quantity + inv_i.quantity
+                            sales_amount = sales_amount + inv_i.total
+
+                    rec_items = Reccurring_Invoice_item.objects.filter(company=company,login_details_id=customer.login_details)
+                    for rec_i in rec_items:
+                        if rec_i.item == i:
+                            sales_quantity = sales_quantity + rec_i.quantity
+                            sales_amount = sales_amount + rec_i.total
+
+                    ret_items = Retaineritems.objects.filter(company=company,logindetails=customer.login_details)
+                    for ret_i in ret_items:
+                        if ret_i.item == i:
+                            sales_quantity = sales_quantity + ret_i.quantity
+                            sales_amount = sales_amount + ret_i.total
+                
+                if party_type == '2':
+                    vendor = Vendor.objects.get(id=party_id)
+                    bill_items = BillItems.objects.filter(Company=company,Login_Details=vendor.login_details)
+                    for bill_i in bill_items:
+                        if bill_i.item_id == i:
+                            purchase_quantity = purchase_quantity + bill_i.qty
+                            purchase_amount = purchase_amount + bill_i.total
+
+                    recc_bills = Recurring_bills.objects.filter(company=company,login_details=vendor.Login_Details)
+                    for recc_b in recc_bills:
+                        rec_bill_items = RecurrItemsList.filter(company=company,recurr_bill_id=recc_b)
+                        for rec_bill_i in rec_bill_items:
+                            if rec_bill_i.recurr_bill_id == i:
+                                purchase_quantity = purchase_quantity + rec_bill_i.qty
+                                purchase_amount = purchase_amount + rec_bill_i.total
+
+                item_report[j] = [i.item_name, sales_quantity, sales_amount, purchase_quantity, purchase_amount]
+                sales_quantity = 0
+                sales_amount = 0
+                purchase_quantity = 0
+                purchase_amount = 0
+                j = j + 1
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+
+
+        context = {'allmodules':allmodules, 'details':dash_details, 'company':company,'log_details':log_details,'item_report':item_report,
+        'customers':customers, 'vendors':vendors}
 
 
 

@@ -213,7 +213,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                   <button class="btn btn-warning" onclick="toggleContent()"><i class="fas fa-solid fa-gear"></i> Customize Report</button>
                                   <div id="contentDiv" class="content">
                                       <h6 style="color: white;">Customize Report</h6>
-                                      <form action="{% url 'item_report_by_party_customized' %}" class="form reportCustomizeForm" method="get">
+                                      <form action="{% url 'item_report_by_party_customized' %}" class="form reportCustomizeForm" method="post">
+                                        {% csrf_token %}
                                           <div class="px-2">
                                               <label style="text-align:left ">From</label><br>
                                               <input name="from_date" class="inputdate form-control text-light" type="date" id="startDate" value="{{startDate}}" >
@@ -326,11 +327,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        {% for i in reportData %}
+                                                                        {% for key, row in item_report.items %}
                                                                         <tr>
-                                                                            <td class="text-center">{{i.name}}</td>
-                                                                            <td class="text-center">{{i.count}}</td>
-                                                                            <td class="text-center">Rs. {{i.sales|floatformat:2 }}</td>
+                                                                            <td class="text-center">{{ row.0 }}</td>
+                                                                            <td class="text-center">{{ row.1 }}</td>
+                                                                            <td class="text-center">{{ row.2 }}</td>
+                                                                            <td class="text-center">{{ row.3 }}</td>
+                                                                            <td class="text-center">{{ row.4 }}</td>
                                                                         </tr>
                                                                         {% endfor %}
                                                                     </tbody>
@@ -421,6 +424,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             $('#typeofparty').val(2)
             $('#partyid').val(vendId)
         }
+
+
+        function filterCustomers(){
+        var options = $('#cust_drop').children();
+        var search_text = $("#party").val().toLowerCase();
+        options.each(function(){
+            if($(this).text().toLowerCase().includes(search_text)){
+                $(this).show()
+            }else{
+                $(this).hide()
+            }
+        })
+    }
 
 
     </script>
