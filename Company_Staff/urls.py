@@ -1008,6 +1008,7 @@ urlpatterns = [
     #-------------------------------------Item Report By Party---------------------------#
     path('item_report_by_party', views.item_report_by_party,name='item_report_by_party'),
     path('item_report_by_party_customized', views.item_report_by_party_customized,name='item_report_by_party_customized'),
+    path('item_report_by_party_send_email', views.shareItemReportByPartyToEmail,name='shareItemReportByPartyToEmail'),
 
 
 
