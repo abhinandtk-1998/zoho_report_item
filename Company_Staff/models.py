@@ -950,6 +950,7 @@ class invoiceReference(models.Model):
     reference_number = models.CharField(max_length=220,null=True,blank=True)
     company = models.ForeignKey(CompanyDetails,on_delete=models.CASCADE,null=True,blank=True)
     staff = models.ForeignKey(StaffDetails,on_delete=models.CASCADE,null=True,blank=True)
+    
 
 
 class invoiceitems(models.Model):

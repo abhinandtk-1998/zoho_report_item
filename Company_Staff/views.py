@@ -49291,10 +49291,16 @@ def item_report_by_party_customized(request):
         vendors = Vendor.objects.filter(company=company, vendor_status = "Active")
 
         if request.method == 'POST':
-            start_date = request.POST['from_date']
-            end_date = request.POST['to_date']
+            startDate = request.POST['from_date']
+            endDate = request.POST['to_date']
             party_type = request.POST['type_of_party']
             party_id = request.POST['party_id']
+
+
+            date_format = "%Y-%m-%d"
+
+            start_date = datetime.strptime(startDate, date_format)
+            end_date = datetime.strptime(endDate, date_format)
 
 
 
@@ -49305,6 +49311,8 @@ def item_report_by_party_customized(request):
 
             total_sales_quantity = 0
             total_purchase_quantity = 0
+            total_sales_amount = 0
+            total_purchase_amount = 0
             
             j = 0
             for i in item_list:
@@ -49315,43 +49323,69 @@ def item_report_by_party_customized(request):
 
                 if party_type == '1':
                     party = Customer.objects.get(id=party_id)
-                    inv_items = invoiceitems.objects.filter(company=company,logindetails=party.login_details)
-                    for inv_i in inv_items:
-                        if inv_i.Items == i:
-                            sales_quantity = sales_quantity + inv_i.quantity
-                            sales_amount = sales_amount + inv_i.total
 
-                    rec_items = Reccurring_Invoice_item.objects.filter(company=company,login_details_id=party.login_details)
-                    for rec_i in rec_items:
-                        if rec_i.item == i:
-                            sales_quantity = sales_quantity + rec_i.quantity
-                            sales_amount = sales_amount + rec_i.total
+                    invoice_list = invoice.objects.filter(company=company,date__range=[start_date, end_date])
+                    for invoice_l in invoice_list:
 
-                    ret_items = Retaineritems.objects.filter(company=company,logindetails=party.login_details)
-                    for ret_i in ret_items:
-                        if ret_i.item == i:
-                            sales_quantity = sales_quantity + ret_i.quantity
-                            sales_amount = sales_amount + ret_i.total
+                        inv_items = invoiceitems.objects.filter(invoice=invoice_l)
+
+                        for inv_i in inv_items:
+                            if inv_i.invoice.customer == party:
+                                if inv_i.Items == i:
+                                    sales_quantity = sales_quantity + inv_i.quantity
+                                    # sales_amount = sales_amount + inv_i.total
+                                    sales_amount = sales_amount + inv_i.quantity * i.selling_price
+
+                    rec_inv_list = RecurringInvoice.objects.filter(company=company, start_date__range=[start_date, end_date])
+                    for rec_inv_l in rec_inv_list:
+
+                        rec_items = Reccurring_Invoice_item.objects.filter(reccuring_invoice=rec_inv_l)
+                        
+                        for rec_i in rec_items:
+                            if rec_i.reccuring_invoice.customer == party:
+                                if rec_i.item == i:
+                                    sales_quantity = sales_quantity + rec_i.quantity
+                                    # sales_amount = sales_amount + rec_i.total
+                                    sales_amount = sales_amount + rec_i.quantity * i.selling_price
+
+
+                    ret_list = RetainerInvoice.objects.filter(company=company, created_at__range=[start_date, end_date])
+                    for ret_l in ret_list:
+                        ret_items = Retaineritems.objects.filter(retainer=ret_l)
+                        for ret_i in ret_items:
+                            if ret_i.retainer.customer_name == party:
+                                if ret_i.item == i:
+                                    sales_quantity = sales_quantity + ret_i.quantity
+                                    # sales_amount = sales_amount + ret_i.total_amount
+                                    sales_amount = sales_amount + ret_i.quantity * i.selling_price
 
                     total_sales_quantity = total_sales_quantity + sales_quantity
+                    total_sales_amount = total_sales_amount + sales_amount
                 
                 if party_type == '2':
                     party = Vendor.objects.get(id=party_id)
-                    bill_items = BillItems.objects.filter(Company=company,Login_Details=party.login_details)
-                    for bill_i in bill_items:
-                        if bill_i.item_id == i:
-                            purchase_quantity = purchase_quantity + bill_i.qty
-                            purchase_amount = purchase_amount + bill_i.total
+                    bill_list = Bill.objects.filter(Company=company,Bill_Date__range=[start_date, end_date])
+                    for bill_l in bill_list:
+                        bill_items = BillItems.objects.filter(Bills=bill_l)
+                        for bill_i in bill_items:
+                            if bill_i.Bills.Vendor == party:
+                                if bill_i.item_id == i:
+                                    purchase_quantity = purchase_quantity + bill_i.qty
+                                    # purchase_amount = purchase_amount + bill_i.total
+                                    purchase_amount = purchase_amount + bill_i.qty * i.purchase_price
 
-                    recc_bills = Recurring_bills.objects.filter(company=company,login_details=party.login_details)
+                    recc_bills = Recurring_bills.objects.filter(company=company,rec_bill_date__range = [start_date, end_date])
                     for recc_b in recc_bills:
                         rec_bill_items = RecurrItemsList.objects.filter(recurr_bill_id=recc_b)
                         for rec_bill_i in rec_bill_items:
-                            if rec_bill_i.recurr_bill_id == i:
-                                purchase_quantity = purchase_quantity + rec_bill_i.qty
-                                purchase_amount = purchase_amount + rec_bill_i.total
+                            if rec_bill_i.recurr_bill_id.vendor_details == party:
+                                if rec_bill_i.item_id == i:
+                                    purchase_quantity = purchase_quantity + rec_bill_i.qty
+                                    # purchase_amount = purchase_amount + rec_bill_i.total
+                                    purchase_amount = purchase_amount + rec_bill_i.qty * i.purchase_price
 
                     total_purchase_quantity = total_purchase_quantity + purchase_quantity
+                    total_purchase_amount = total_purchase_amount + purchase_amount
 
                 item_report[j] = [i.item_name, sales_quantity, sales_amount, purchase_quantity, purchase_amount]
                 sales_quantity = 0
@@ -49379,7 +49413,8 @@ def item_report_by_party_customized(request):
         context = {'allmodules':allmodules, 'details':dash_details, 'company':company,'log_details':log_details,'item_report':item_report,
         'customers':customers, 'vendors':vendors, 'party':party, 'start_date':start_date, 'end_date':end_date,
         'total_sales_quantity': total_sales_quantity, 'total_purchase_quantity':total_purchase_quantity,
-        'party_id':party_id,'party_type':party_type}
+        'party_id':party_id,'party_type':party_type,'total_sales_amount':total_sales_amount,
+        'total_purchase_amount':total_purchase_amount}
 
 
 
@@ -49408,10 +49443,31 @@ def shareItemReportByPartyToEmail(request):
                 # Split the string by commas and remove any leading or trailing whitespace
                 emails_list = [email.strip() for email in emails_string.split(',')]
                 email_message = request.POST['email_message']
-                start_date = request.POST['start_date']
-                end_date = request.POST['end_date']
+                startDate = request.POST['start_date']
+                endDate = request.POST['end_date']
                 party_id = request.POST['party_id']
                 party_type = request.POST['party_type']
+
+                # emails_string = request.POST['email_ids']
+
+                # # Split the string by commas and remove any leading or trailing whitespace
+                # emails_list = [email.strip() for email in emails_string.split(',')]
+                # email_message = request.POST['email_message']
+                # start_date = request.POST['start']
+                # end_date = request.POST['end']
+                # party_id = request.POST['party_Id']
+                # party_type = request.POST['party_Type']               
+
+
+                date_format = "%Y-%m-%d"
+
+                # start_date = datetime.strptime(startDate, date_format)
+                # end_date = datetime.strptime(endDate, date_format)
+
+                start_date = datetime.now()
+                end_date = datetime.now() 
+
+                
 
 
                 item_list = Items.objects.filter(company=company)
@@ -49419,6 +49475,8 @@ def shareItemReportByPartyToEmail(request):
 
                 total_sales_quantity = 0
                 total_purchase_quantity = 0
+                total_sales_amount = 0
+                total_purchase_amount = 0
                 
                 j = 0
                 for i in item_list:
@@ -49429,43 +49487,69 @@ def shareItemReportByPartyToEmail(request):
 
                     if party_type == '1':
                         party = Customer.objects.get(id=party_id)
-                        inv_items = invoiceitems.objects.filter(company=company,logindetails=party.login_details)
-                        for inv_i in inv_items:
-                            if inv_i.Items == i:
-                                sales_quantity = sales_quantity + inv_i.quantity
-                                sales_amount = sales_amount + inv_i.total
 
-                        rec_items = Reccurring_Invoice_item.objects.filter(company=company,login_details_id=party.login_details)
-                        for rec_i in rec_items:
-                            if rec_i.item == i:
-                                sales_quantity = sales_quantity + rec_i.quantity
-                                sales_amount = sales_amount + rec_i.total
+                        invoice_list = invoice.objects.filter(company=company,date__range=[start_date, end_date])
+                        for invoice_l in invoice_list:
 
-                        ret_items = Retaineritems.objects.filter(company=company,logindetails=party.login_details)
-                        for ret_i in ret_items:
-                            if ret_i.item == i:
-                                sales_quantity = sales_quantity + ret_i.quantity
-                                sales_amount = sales_amount + ret_i.total
+                            inv_items = invoiceitems.objects.filter(invoice=invoice_l)
+
+                            for inv_i in inv_items:
+                                if inv_i.invoice.customer == party:
+                                    if inv_i.Items == i:
+                                        sales_quantity = sales_quantity + inv_i.quantity
+                                        # sales_amount = sales_amount + inv_i.total
+                                        sales_amount = sales_amount + inv_i.quantity * i.selling_price
+
+                        rec_inv_list = RecurringInvoice.objects.filter(company=company, start_date__range=[start_date, end_date])
+                        for rec_inv_l in rec_inv_list:
+
+                            rec_items = Reccurring_Invoice_item.objects.filter(reccuring_invoice=rec_inv_l)
+                            
+                            for rec_i in rec_items:
+                                if rec_i.reccuring_invoice.customer == party:
+                                    if rec_i.item == i:
+                                        sales_quantity = sales_quantity + rec_i.quantity
+                                        # sales_amount = sales_amount + rec_i.total
+                                        sales_amount = sales_amount + rec_i.quantity * i.selling_price
+
+
+                        ret_list = RetainerInvoice.objects.filter(company=company, created_at__range=[start_date, end_date])
+                        for ret_l in ret_list:
+                            ret_items = Retaineritems.objects.filter(retainer=ret_l)
+                            for ret_i in ret_items:
+                                if ret_i.retainer.customer_name == party:
+                                    if ret_i.item == i:
+                                        sales_quantity = sales_quantity + ret_i.quantity
+                                        # sales_amount = sales_amount + ret_i.total_amount
+                                        sales_amount = sales_amount + ret_i.quantity * i.selling_price
 
                         total_sales_quantity = total_sales_quantity + sales_quantity
+                        total_sales_amount = total_sales_amount + sales_amount
                     
                     if party_type == '2':
                         party = Vendor.objects.get(id=party_id)
-                        bill_items = BillItems.objects.filter(Company=company,Login_Details=party.login_details)
-                        for bill_i in bill_items:
-                            if bill_i.item_id == i:
-                                purchase_quantity = purchase_quantity + bill_i.qty
-                                purchase_amount = purchase_amount + bill_i.total
+                        bill_list = Bill.objects.filter(Company=company,Bill_Date__range=[start_date, end_date])
+                        for bill_l in bill_list:
+                            bill_items = BillItems.objects.filter(Bills=bill_l)
+                            for bill_i in bill_items:
+                                if bill_i.Bills.Vendor == party:
+                                    if bill_i.item_id == i:
+                                        purchase_quantity = purchase_quantity + bill_i.qty
+                                        # purchase_amount = purchase_amount + bill_i.total
+                                        purchase_amount = purchase_amount + bill_i.qty * i.purchase_price
 
-                        recc_bills = Recurring_bills.objects.filter(company=company,login_details=party.login_details)
+                        recc_bills = Recurring_bills.objects.filter(company=company,rec_bill_date__range = [start_date, end_date])
                         for recc_b in recc_bills:
                             rec_bill_items = RecurrItemsList.objects.filter(recurr_bill_id=recc_b)
                             for rec_bill_i in rec_bill_items:
-                                if rec_bill_i.recurr_bill_id == i:
-                                    purchase_quantity = purchase_quantity + rec_bill_i.qty
-                                    purchase_amount = purchase_amount + rec_bill_i.total
+                                if rec_bill_i.recurr_bill_id.vendor_details == party:
+                                    if rec_bill_i.item_id == i:
+                                        purchase_quantity = purchase_quantity + rec_bill_i.qty
+                                        # purchase_amount = purchase_amount + rec_bill_i.total
+                                        purchase_amount = purchase_amount + rec_bill_i.qty * i.purchase_price
 
                         total_purchase_quantity = total_purchase_quantity + purchase_quantity
+                        total_purchase_amount = total_purchase_amount + purchase_amount
 
                     item_report[j] = [i.item_name, sales_quantity, sales_amount, purchase_quantity, purchase_amount]
                     sales_quantity = 0
@@ -49475,14 +49559,15 @@ def shareItemReportByPartyToEmail(request):
                     j = j + 1
 
 
+
                 context = {'details':dash_details, 'company':company,'log_details':log_details,'item_report':item_report,
                     'customers':customers, 'vendors':vendors, 'party':party, 'start_date':start_date, 'end_date':end_date,
                     'total_sales_quantity': total_sales_quantity, 'total_purchase_quantity':total_purchase_quantity,
-                    'party_id':party_id,'party_type':party_type}
+                    'party_id':party_id,'party_type':party_type,'total_sales_amount':total_sales_amount, 'total_purchase_amount':total_purchase_amount}
 
 
 
-                template_path = 'zohomodules/Reports/item_report_by_party_Pdf.html'
+                template_path = 'zohomodules/Reports/item_report_by_party_pdf.html'
                 template = get_template(template_path)
 
                 html  = template.render(context)
@@ -49492,22 +49577,32 @@ def shareItemReportByPartyToEmail(request):
                 filename = f'Item Report By Party'
                 subject = f"Item Report By Party"
                 # from django.core.mail import EmailMessage as EmailMsg
-                email = EmailMsg(subject, f"Hi,\nPlease find the attached Item Report By Party. \n{email_message}\n\n--\nRegards,\n{company.company_name}\n{company.address}\n{companyy.state} - {company.country}\n{company.contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email = EmailMultiAlternatives(subject, f"Hi,\nPlease find the attached Item Report By Party. \n{email_message}\n\n--\nRegards,\n{company.company_name}\n{company.address}\n{company.state} - {company.country}\n{company.contact}", settings.EMAIL_HOST_USER, emails_list)
                 email.attach(filename, pdf, "application/pdf")
                 email.send(fail_silently=False)
 
                 
 
+                # messages.success(request, 'Sales By Report details has been shared via email successfully..!')
+                # return redirect('item_report_by_party')
+
                 return JsonResponse({'status':True, 'message':'Sales By Report details has been shared via email successfully..!'})
         except Exception as e:
             print(e)
+            # messages.error(request, f'{e}')
+            # return redirect('item_report_by_party')
             return JsonResponse({'status':False, 'message':'Error while sending Email.!'})
 
 
 
 
 
-
+# messages.success(request, 'Sales By Report details has been shared via email successfully..!')
+#                 return redirect(Salesbycustomer)
+#         except Exception as e:
+#             print(e)
+#             messages.error(request, f'{e}')
+#             return redirect(Salesbycustomer)
 
 
 
