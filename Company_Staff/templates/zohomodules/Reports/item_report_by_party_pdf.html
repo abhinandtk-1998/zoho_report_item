@@ -90,7 +90,7 @@
                 <div class="row p-4">
                     <div class="col-10">
                         <div class="row mb-2">
-                            <div class="col-4" ><h3>Party : {{party.title}} {{party.first_name}} {{party.last_name}}</h3>
+                            <div class="col-10" ><h3>Party : {{party.title}} {{party.first_name}} {{party.last_name}}</h3>
                             </div><br><br>
                         </div>
     
@@ -126,46 +126,27 @@
                 </table>
             </section>
             <hr>
-            <section class="balance-info text-dark">
-                <table>
+            <section class="text-dark">
+                <table border="0" style="border: none;border-collapse: collapse;">
                     <tbody>
                         <tr>
-                            <td style="text-align: center;">
-                                <div>Total Sales Qty: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalReccuringinvoice">{{total_sales_quantity|default:0|floatformat:2}}</span></p></div>
+                            <td style="text-align: right;">
+                                <div>Total Sales Qty: <p style="font-size: 16px; margin-top: 3px;"><span id="totalReccuringinvoice">{{total_sales_quantity|default:0}}</span></p></div>
                             </td>
-                            <td style="text-align: center;">
-                                <div>Total Purchase Qty: <p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalCreditnote">{{total_purchase_quantity|default:0|floatformat:2}}</span></p></div>
+                            <td style="text-align: right;">
+                                <div>Total Purchase Qty: <p style="font-size: 16px; margin-top: 3px;"><span id="totalCreditnote">{{total_purchase_quantity|default:0}}</span></p></div>
                             </td>
                         </tr>
                         <tr style="margin-top: 1rem;">
-                            <td style="text-align: center;">
+                            <td style="text-align: right;">
                                 <div>Total Sales Amount:<p style="font-size: 16px; margin-top: 3px;">Rs. <span id="totalSalewithoutCreditnotes">{{total_sales_amount|default:0|floatformat:2}}</span></p></div>
                             </td>
-                            <td style="text-align: center;">
+                            <td style="text-align: right;">
                                 <div>Total Purchase Amount:<p style="font-size: 16px; margin-top: 3px;">Rs. <span id="grantTotal">{{total_purchase_amount|default:0|floatformat:2}}</span></p></div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div class="row p-4 justify-content-end">
-                    <div class="col-10">
-                        <div class="row mb-2 justify-content-end">
-                            <div class="col-4"><b>Total Sales Qty: </b><p id="purchase" style="font-size: 19px;"><span id="totalReccuringinvoice"><b>{{total_sales_quantity|default:0}}</b></span></p></div>
-                            <div class="col-4"><b>Total Purchase Qty: </b><p id="expense" style="font-size: 19px;"><span id="totalCreditnote"><b>{{total_purchase_quantity|default:0}}</b></span></p></div>
-                        </div>
-    
-                    </div>
-                </div>
-
-                <div class="row p-4 justify-content-end">
-                    <div class="col-10">
-                        <div class="row mb-2 justify-content-end">
-                            <div class="col-4"><b>Total Sales Amount: </b><p id="purchase" style="font-size: 19px;"><span id="totalReccuringinvoice"><b>{{total_sales_amount|default:0}}</b></span></p></div>
-                            <div class="col-4"><b>Total Purchase Amount: </b><p id="expense" style="font-size: 19px;"><span id="totalCreditnote"><b>{{total_purchase_amount|default:0}}</b></span></p></div>
-                        </div>
-    
-                    </div>
-                </div>
             </section>
         </div>
     </div>

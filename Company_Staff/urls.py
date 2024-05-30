@@ -1010,8 +1010,6 @@ urlpatterns = [
     path('item_report_by_party_customized', views.item_report_by_party_customized,name='item_report_by_party_customized'),
     path('item_report_by_party_send_email', views.shareItemReportByPartyToEmail,name='shareItemReportByPartyToEmail'),
 
-
-
     #-----------------------------------End----------------------------------------------#
     
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

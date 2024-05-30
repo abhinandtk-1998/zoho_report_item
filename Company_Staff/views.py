@@ -49396,20 +49396,6 @@ def item_report_by_party_customized(request):
 
 
 
-
-
-
-
-            
-
-
-
-
-
-
-
-
-
         context = {'allmodules':allmodules, 'details':dash_details, 'company':company,'log_details':log_details,'item_report':item_report,
         'customers':customers, 'vendors':vendors, 'party':party, 'start_date':start_date, 'end_date':end_date,
         'total_sales_quantity': total_sales_quantity, 'total_purchase_quantity':total_purchase_quantity,
@@ -49447,27 +49433,14 @@ def shareItemReportByPartyToEmail(request):
                 endDate = request.POST['end_date']
                 party_id = request.POST['party_id']
                 party_type = request.POST['party_type']
-
-                # emails_string = request.POST['email_ids']
-
-                # # Split the string by commas and remove any leading or trailing whitespace
-                # emails_list = [email.strip() for email in emails_string.split(',')]
-                # email_message = request.POST['email_message']
-                # start_date = request.POST['start']
-                # end_date = request.POST['end']
-                # party_id = request.POST['party_Id']
-                # party_type = request.POST['party_Type']               
-
+        
 
                 date_format = "%Y-%m-%d"
 
-                # start_date = datetime.strptime(startDate, date_format)
-                # end_date = datetime.strptime(endDate, date_format)
+                start_date = datetime.strptime(startDate, date_format).date()
+                end_date = datetime.strptime(endDate, date_format).date()
 
-                start_date = datetime.now()
-                end_date = datetime.now() 
-
-                
+        
 
 
                 item_list = Items.objects.filter(company=company)
@@ -49581,39 +49554,11 @@ def shareItemReportByPartyToEmail(request):
                 email.attach(filename, pdf, "application/pdf")
                 email.send(fail_silently=False)
 
-                
-
-                # messages.success(request, 'Sales By Report details has been shared via email successfully..!')
-                # return redirect('item_report_by_party')
 
                 return JsonResponse({'status':True, 'message':'Sales By Report details has been shared via email successfully..!'})
         except Exception as e:
             print(e)
-            # messages.error(request, f'{e}')
-            # return redirect('item_report_by_party')
             return JsonResponse({'status':False, 'message':'Error while sending Email.!'})
-
-
-
-
-
-# messages.success(request, 'Sales By Report details has been shared via email successfully..!')
-#                 return redirect(Salesbycustomer)
-#         except Exception as e:
-#             print(e)
-#             messages.error(request, f'{e}')
-#             return redirect(Salesbycustomer)
-
-
-
-
-
-
-
-
-        
-        
-
 
 
 #--------------------------End-------------------------------------------------#

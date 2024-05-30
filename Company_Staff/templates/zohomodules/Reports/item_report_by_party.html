@@ -216,16 +216,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
                 <div class=" mt-lg-4 mt-2 rounded p-4" style="background-color: rgb(0, 0, 0);color: white;">
                     <h1 class="text-light">Item Report By Party</h1>
-                    {% for message in messages %}
-                    <h5>
-                      <div class="alert alert-danger message text-center" style="color: black;" id="alert_danger">
-                        {{ message }}
-                        <a type="button" id="alert_close" class="close" data-dismiss="alert" aria-label="Close" style="float: right;">
-                          <span aria-hidden="true" style="font-size: large; color: #68020F;">&times;</span>
-                        </a>
-                      </div>
-                    </h5>
-                    {% endfor %}
                     <br>
                     <div class="row">
                         <div class="col-md-6 d-flex p-2 ">
@@ -343,7 +333,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                                                 <div class="row p-4">
                                                                     <div class="col-10">
                                                                         <div class="row mb-2">
-                                                                            <div class="col-4" ><h3>Party : {{party.title}} {{party.first_name}} {{party.last_name}}</h3>
+                                                                            <div class="col-10" ><h3>Party : {{party.title}} {{party.first_name}} {{party.last_name}}</h3>
                                                                             </div><br><br>
                                                                         </div>
                                                     
@@ -419,7 +409,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                   </button>
                                 </div>
                                 <div class="modal-body mx-3" style="background-color: #000;">
-                                  <form id="share_to_email_form">
+                                  <form id="share_to_email_form" action="{% url 'shareItemReportByPartyToEmail' %}" method="POST">
                                     {%csrf_token%}
                                     <div class="form-group">
                                         <label for="emailIds">Email IDs</label>
@@ -431,8 +421,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                     </div>
                                     <input type="text" name="party_Id" id="party_id" value="{{party_id}}" hidden>
                                     <input type="text" name="party_Type" id="party_type" value="{{party_type}}" hidden>
-                                    <input type="date" name="start" id="startDate" value="{{start_date | date:'Y-m-d'}}">
-                                    <input type="date" name="end" id="endDate" value="{{end_date  | date:'Y-m-d'}}">
+                                    <input type="date" name="start" id="startDaten" value="{{start_date | date:'Y-m-d'}}" hidden>
+                                    <input type="date" name="end" id="endDaten" value="{{end_date  | date:'Y-m-d'}}" hidden>
                                     <div class="row mt-3">
                                       <div class="col-md-4"></div>
                                       <div class="col-md-4">
@@ -535,6 +525,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             window.print(); 
             $printerDiv.remove();
             $('body').removeClass("printingContent");
+            document.body.style.backgroundColor = 'rgb(30,30,30)';
         }
 
 
@@ -587,15 +578,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                         // $('#share_to_email_form').submit();
                         var emailids = $('#emailIds').val();
                         var emailmessages = $("#email_message").val();
-                        var startdate = $("#startDate").val();
-                        var enddate = $("#endDate").val();
+                        var startdate = $("#startDaten").val();
+                        var enddate = $("#endDaten").val();
                         var partyID = $("#party_id").val();
                         var partyType = $("#party_type").val();
                         $('#shareToEmail').modal('hide');
                         document.getElementById("share_to_email_form").reset();
 
-                        console.log(startdate)
-                        console.log(enddate)
 
 
                         $.ajax({
@@ -619,24 +608,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                     }else{
                                         $('#alert_danger').text(response.message);
                                     }
-                                    // document.getElementById("modalPayment_terms").reset();
-                                    
-                                    // var dropdown = $('#paytearm-select');
-                                    
-                                    // // dropdown.empty();
-                                    // // dropdown.append(`<option value="" selected>Choose</option>`);
-                                    // $.each(response, function(key, value) {
-                                    //     for(let i=0; i<value.length; i++){
-                                    //         if(value[i].name == trm){
-                                    //             dropdown.append($('<option selected ></option>').attr('text',value[i].days).text(value[i].name).val(value[i].id))
-                                    //         }
-                                    //         // else{
-                                    //         //     dropdown.append($('<option></option>').attr('text',value[i].days).text(value[i].name).val(value[i].id))
-                                    //         // }   
-                                    //     }
-                                    // });
-
-                                    // // findDueDate();
 
                                 }else{
                                     alert("Something went wrong.!")
